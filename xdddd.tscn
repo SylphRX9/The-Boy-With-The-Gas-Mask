@@ -1,0 +1,208 @@
+[gd_scene load_steps=8 format=3 uid="uid://b34wuq7gwoi5b"]
+
+[ext_resource type="Texture2D" uid="uid://csxodtc2sfeuu" path="res://assets/textura_pasto (1).jpg" id="1_28dm3"]
+[ext_resource type="Texture2D" uid="uid://cgqmcra8ykqsq" path="res://assets/thecumgun.png" id="1_ivqoo"]
+
+[sub_resource type="GDScript" id="GDScript_4xowi"]
+script/source = "extends CharacterBody3D
+
+@export var walk_speed: float = 5.0
+@export var run_speed: float = 9.0
+@export var crouch_speed: float = 2.5
+@export var jump_speed: float = 6.0
+@export var gravity: float = 9.8
+@export var mouse_sensitivity: float = 0.0025
+
+# --- Recoil de cámara y arma ---
+@export var recoil_angle: float = 2.0
+@export var recoil_recover_speed: float = 6.0
+@export var weapon_recoil_distance: float = 0.2
+@export var weapon_recoil_recover_speed: float = 5.0
+
+var current_recoil_angle: float = 0.0
+var current_weapon_recoil: float = 0.0
+
+# Estamina
+@export var max_stamina: float = 100.0
+@export var stamina_recovery_rate: float = 15.0   # puntos/segundo
+@export var stamina_drain_rate: float = 25.0       # puntos/segundo
+var stamina: float = max_stamina
+var is_running: bool = false
+var can_recover_stamina: bool = true
+
+# Crouch
+@export var crouch_height: float = 0.8
+var standing_height: float
+var is_crouching: bool = false
+
+# Cámara y rotación
+var rotation_x: float = 0.0
+var camera_bob_timer: float = 0.0
+@export var camera_bob_amount: float = 0.2
+@export var camera_bob_speed: float = 13.0
+
+
+func _ready():
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	standing_height = $Camera3D.position.y
+
+
+func _unhandled_input(event):
+	if event is InputEventMouseMotion:
+		# Rotación horizontal del cuerpo
+		rotate_y(-event.relative.x * mouse_sensitivity)
+
+		# Rotación vertical de la cámara (limitada)
+		rotation_x -= event.relative.y * mouse_sensitivity
+		rotation_x = clamp(rotation_x, -1.5, 1.5)
+		$Camera3D.rotation.x = rotation_x
+
+
+func _physics_process(delta):
+	var input_dir = Vector3.ZERO
+
+	# Movimiento con WASD
+	if Input.is_action_pressed(\"move_forward\"):
+		input_dir.z -= 1
+	if Input.is_action_pressed(\"move_backward\"):
+		input_dir.z += 1
+	if Input.is_action_pressed(\"move_left\"):
+		input_dir.x -= 1
+	if Input.is_action_pressed(\"move_right\"):
+		input_dir.x += 1
+
+	input_dir = input_dir.normalized()
+
+	# Dirección de movimiento basada en rotación
+	var direction = (transform.basis * input_dir)
+	direction.y = 0
+	direction = direction.normalized()
+
+	# --- SISTEMA DE CORRER CON ESTAMINA ---
+	is_running = Input.is_action_pressed(\"sprint\") and stamina > 0 and not is_crouching
+
+	if is_running:
+		stamina -= stamina_drain_rate * delta
+		if stamina < 0:
+			stamina = 0
+	else:
+		# Recuperar estamina cuando no corres
+		stamina += stamina_recovery_rate * delta
+		stamina = clamp(stamina, 0, max_stamina)
+
+	# --- SISTEMA DE AGACHARSE ---
+	if Input.is_action_pressed(\"crouch\"):
+		if not is_crouching:
+			is_crouching = true
+			$Camera3D.position.y = crouch_height
+	else:
+		if is_crouching:
+			is_crouching = false
+			$Camera3D.position.y = standing_height
+
+	# Determinar velocidad según estado
+	var current_speed = walk_speed
+	if is_running:
+		current_speed = run_speed
+	elif is_crouching:
+		current_speed = crouch_speed
+
+	# Movimiento horizontal
+	velocity.x = direction.x * current_speed
+	velocity.z = direction.z * current_speed
+
+	# Gravedad y salto
+	if not is_on_floor():
+		velocity.y -= gravity * delta
+	else:
+		if Input.is_action_just_pressed(\"jump\") and not is_crouching:
+			velocity.y = jump_speed
+
+	# --- DISPARO Y RECOIL ---
+	if Input.is_action_just_pressed(\"fire\"):
+		apply_recoil()
+
+	move_and_slide()
+
+	# --- EFECTO DE CÁMARA (DOOM 1996 STYLE) ---
+	_apply_camera_bob(delta, input_dir.length(), is_on_floor())
+
+	# --- RECOIL VISUAL ---
+	current_recoil_angle = lerp(current_recoil_angle, 0.0, delta * recoil_recover_speed)
+	$Camera3D.rotation.x = rotation_x + deg_to_rad(current_recoil_angle)
+
+	# --- RECOIL DEL ARMA ---
+	var weapon_holder = $Camera3D/WeaponHolder
+	if weapon_holder:
+		current_weapon_recoil = lerp(current_weapon_recoil, 0.0, delta * weapon_recoil_recover_speed)
+		
+		# Movimiento base del arma
+		var base_position = Vector3(0.4, -0.4, -0.8 - current_weapon_recoil)
+
+		# Movimiento DOOM: seguir el bob de la cámara
+		var bob_offset_y = sin(camera_bob_timer) * 0.05
+		var bob_offset_x = sin(camera_bob_timer * 0.5) * 0.05
+
+		weapon_holder.position = base_position + Vector3(bob_offset_x, bob_offset_y, 0)
+
+
+func _apply_camera_bob(delta, movement_amount: float, on_floor: bool):
+	if on_floor and movement_amount > 0:
+		camera_bob_timer += delta * camera_bob_speed
+		var bob_offset = sin(camera_bob_timer) * camera_bob_amount
+		$Camera3D.position.y = standing_height + bob_offset
+	else:
+		# Restablecer altura al estar quieto o en el aire
+		$Camera3D.position.y = lerp($Camera3D.position.y, standing_height, delta * 5.0)
+
+
+# --- FUNCIÓN DE RECOIL ---
+func apply_recoil():
+	current_recoil_angle -= recoil_angle
+	current_weapon_recoil -= weapon_recoil_distance
+"
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4xowi"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ivqoo"]
+albedo_texture = ExtResource("1_28dm3")
+uv1_triplanar = true
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_wbwvp"]
+size = Vector2(300, 300)
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_28dm3"]
+data = PackedVector3Array(150, 0, 150, -150, 0, 150, 150, 0, -150, -150, 0, 150, -150, 0, -150, 150, 0, -150)
+
+[node name="Node3D" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12398529, 0, 0)
+
+[node name="Player" type="CharacterBody3D" parent="."]
+script = SubResource("GDScript_4xowi")
+
+[node name="Camera3D" type="Camera3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13408563, 4.302849, 0.034178853)
+
+[node name="WeaponHolder" type="Node3D" parent="Player/Camera3D"]
+
+[node name="Sprite3D" type="Sprite3D" parent="Player/Camera3D/WeaponHolder"]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0.062, -0.2, -0.683)
+cast_shadow = 0
+texture = ExtResource("1_ivqoo")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5809941, 0)
+shape = SubResource("CapsuleShape3D_4xowi")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.024467036, 0.9997007, 0, -0.9997007, 0.024467036, 0, 11.387339, 0)
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
+material_override = SubResource("StandardMaterial3D_ivqoo")
+lod_bias = 0.001
+mesh = SubResource("PlaneMesh_wbwvp")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="MeshInstance3D2"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D2/StaticBody3D"]
+shape = SubResource("ConcavePolygonShape3D_28dm3")

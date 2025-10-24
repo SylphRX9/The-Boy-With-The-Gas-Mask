@@ -1,0 +1,88 @@
+[gd_scene load_steps=5 format=3 uid="uid://cma0ws8fbrvs8"]
+
+[sub_resource type="GDScript" id="GDScript_4xowi"]
+script/source = "extends CharacterBody3D
+
+@export var speed : float = 5.0
+@export var jump_speed : float = 6.0
+@export var gravity : float = 9.8
+@export var mouse_sensitivity : float = 0.0025  # sensibilidad cómoda
+var rotation_x : float = 0.0
+
+func _ready():
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+func _unhandled_input(event):
+	if event is InputEventMouseMotion:
+		# Rotación horizontal del cuerpo
+		rotate_y(-event.relative.x * mouse_sensitivity)
+		
+		# Rotación vertical de la cámara (limitada)
+		rotation_x -= event.relative.y * mouse_sensitivity
+		rotation_x = clamp(rotation_x, -1.5, 1.5)  # -1.5 a 1.5 radianes ≈ -85° a 85°
+		$Camera3D.rotation.x = rotation_x
+
+func _physics_process(delta):
+	var input_dir = Vector3.ZERO
+
+	# Movimiento con WASD
+	if Input.is_action_pressed(\"move_forward\"):
+		input_dir.z -= 1
+	if Input.is_action_pressed(\"move_backward\"):
+		input_dir.z += 1
+	if Input.is_action_pressed(\"move_left\"):
+		input_dir.x -= 1
+	if Input.is_action_pressed(\"move_right\"):
+		input_dir.x += 1
+
+	input_dir = input_dir.normalized()
+
+	# Dirección del movimiento basada en la orientación del cuerpo
+	var direction = (transform.basis * input_dir)
+	direction.y = 0
+	direction = direction.normalized()
+
+	velocity.x = direction.x * speed
+	velocity.z = direction.z * speed
+
+	# Gravedad
+	if not is_on_floor():
+		velocity.y -= gravity * delta
+	else:
+		# Salto
+		if Input.is_action_just_pressed(\"jump\"):
+			velocity.y = jump_speed
+
+	move_and_slide()
+"
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4xowi"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_a202f"]
+size = Vector2(10, 10)
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_4xowi"]
+data = PackedVector3Array(5, 0, 5, -5, 0, 5, 5, 0, -5, -5, 0, 5, -5, 0, -5, 5, 0, -5)
+
+[node name="Node3D" type="Node3D"]
+
+[node name="Player" type="CharacterBody3D" parent="."]
+script = SubResource("GDScript_4xowi")
+
+[node name="Camera3D" type="Camera3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+shape = SubResource("CapsuleShape3D_4xowi")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.991169, 0.108133405, 0.07675438, -0.10770072, 0.99413556, -0.009766087, -0.07736032, 0.0014132542, 0.99700236, -0.17655468, -0.339934, 0.026509881)
+mesh = SubResource("PlaneMesh_a202f")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="MeshInstance3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D/StaticBody3D"]
+shape = SubResource("ConcavePolygonShape3D_4xowi")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.024467036, 0.9997007, 0, -0.9997007, 0.024467036, 0, 11.387339, 0)
