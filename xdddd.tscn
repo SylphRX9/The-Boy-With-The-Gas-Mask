@@ -1,9 +1,14 @@
-[gd_scene load_steps=13 format=3 uid="uid://b34wuq7gwoi5b"]
+[gd_scene load_steps=18 format=3 uid="uid://b34wuq7gwoi5b"]
 
 [ext_resource type="Texture2D" uid="uid://csxodtc2sfeuu" path="res://assets/textura_pasto (1).jpg" id="1_28dm3"]
 [ext_resource type="Texture2D" uid="uid://cgqmcra8ykqsq" path="res://assets/thecumgun.png" id="1_ivqoo"]
 [ext_resource type="Shader" uid="uid://6f47b5vnldw7" path="res://custom.tres" id="1_kjanr"]
 [ext_resource type="Texture2D" uid="uid://dj2wuro26srr3" path="res://assets/sky_normal.jpg" id="2_ympfa"]
+[ext_resource type="AudioStream" uid="uid://b6ic0crdqexaa" path="res://shootsound/ShootPlayer1.wav" id="4_q0d2a"]
+[ext_resource type="AudioStream" uid="uid://dgsq1x4im4bpv" path="res://shootsound/ShootPlayer2.wav" id="5_wp25t"]
+[ext_resource type="AudioStream" uid="uid://dc5w4s6t66ppt" path="res://shootsound/ShootPlayer3.wav" id="6_ympoa"]
+[ext_resource type="AudioStream" uid="uid://bcylsf2krcxlp" path="res://shootsound/EmptyPlayer.wav" id="7_24gbr"]
+[ext_resource type="AudioStream" uid="uid://bf4wti8i7q5mf" path="res://shootsound/ReloadPlayer.wav" id="8_2m65v"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_7x1pq"]
 shader = ExtResource("1_kjanr")
@@ -220,7 +225,7 @@ size = Vector2(300, 300)
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_28dm3"]
 data = PackedVector3Array(150, 0, 150, -150, 0, 150, 150, 0, -150, -150, 0, 150, -150, 0, -150, 150, 0, -150)
 
-[node name="Node3D" type="Node3D"]
+[node name="main" type="Node3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12398529, 0, 0)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -242,6 +247,21 @@ texture = ExtResource("1_ivqoo")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5809941, 0)
 shape = SubResource("CapsuleShape3D_4xowi")
+
+[node name="ShootPlayer1" type="AudioStreamPlayer" parent="Player"]
+stream = ExtResource("4_q0d2a")
+
+[node name="ShootPlayer2" type="AudioStreamPlayer" parent="Player"]
+stream = ExtResource("5_wp25t")
+
+[node name="ShootPlayer3" type="AudioStreamPlayer" parent="Player"]
+stream = ExtResource("6_ympoa")
+
+[node name="EmptyPlayer" type="AudioStreamPlayer" parent="Player"]
+stream = ExtResource("7_24gbr")
+
+[node name="ReloadPlayer" type="AudioStreamPlayer" parent="Player"]
+stream = ExtResource("8_2m65v")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.9308519, 0.008940174, 0.36528736, -0.3653967, 0.022775183, 0.93057317, 0, -0.9997006, 0.024467032, 63.350853, 152.5575, 0)

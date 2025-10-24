@@ -1,12 +1,12 @@
 63f7b34db8d8cdea90c76aacccf841ec
-::res://::1761280285
-custom.tres::VisualShader::2187994079583922400::1761279053::0::1::::<><><>0<>0<><>::uid://drp254avy1x0m::::res://assets/Skye_lightbolt.jpg
+::res://::1761285135
+custom.tres::VisualShader::2187994079583922400::1761283066::0::1::::<><><>0<>0<><>::uid://drp254avy1x0m::::res://assets/Skye_lightbolt.jpg
 hand.png::CompressedTexture2D::6114640296755727902::1761275565::1761275924::1::::<><><>0<>0<>854d5c874a226766cddf44fadd87957e<>res://.godot/imported/hand.png-ab08d4c16d739dc340ddd61157c2fe18.s3tc.ctex::
 icon.svg::CompressedTexture2D::8002790554282658466::1761275565::1761275924::1::::<><><>0<>0<>0326789c9dd605a760dc62b4075fb142<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
 ni puto idea como hcie esto XD.tscn::PackedScene::2402899868120902059::1761275565::0::1::::<><><>0<>0<><>::
 node_3d.tscn::PackedScene::5616665699955714897::1761275565::0::1::::<><><>0<>0<><>::
 README.md::TextFile::-1::1761275565::0::1::::<><><>0<>0<><>::
-xdddd.tscn::PackedScene::4412947640254617517::1761279877::0::1::::<><><>0<>0<><>::uid://csxodtc2sfeuu::::res://assets/textura_pasto (1).jpg<>uid://cgqmcra8ykqsq::::res://assets/thecumgun.png<>uid://6f47b5vnldw7::::res://custom.tres<>uid://dj2wuro26srr3::::res://assets/sky_normal.jpg
+xdddd.tscn::PackedScene::4412947640254617517::1761284573::0::1::::<><><>0<>0<><>::uid://csxodtc2sfeuu::::res://assets/textura_pasto (1).jpg<>uid://cgqmcra8ykqsq::::res://assets/thecumgun.png<>uid://6f47b5vnldw7::::res://custom.tres<>uid://dj2wuro26srr3::::res://assets/sky_normal.jpg<>uid://b6ic0crdqexaa::::res://shootsound/ShootPlayer1.wav<>uid://dgsq1x4im4bpv::::res://shootsound/ShootPlayer2.wav<>uid://dc5w4s6t66ppt::::res://shootsound/ShootPlayer3.wav<>uid://bcylsf2krcxlp::::res://shootsound/EmptyPlayer.wav<>uid://bf4wti8i7q5mf::::res://shootsound/ReloadPlayer.wav
 ::res://addons/::1761278714
 ::res://assets/::1761277257
 rei-ayanami-1309-x-1309-wallpaper-599poew67440pb1r.jpg::CompressedTexture2D::9159161759222328816::1761275565::1761275924::1::::<><><>0<>0<>b09a0c39fa8f919eb42cf8d2e0a38f0a<>res://.godot/imported/rei-ayanami-1309-x-1309-wallpaper-599poew67440pb1r.jpg-23a4dcbb1a4e698db8628e21fbc234ad.s3tc.ctex::
@@ -111,7 +111,7 @@ ppo_test.yaml::TextFile::-1::1761280285::0::1::::<><><>0<>0<><>::
 pyproject.toml::TextFile::-1::1761280285::0::1::::<><><>0<>0<><>::
 README.md::TextFile::-1::1761280285::0::1::::<><><>0<>0<><>::
 setup.cfg::TextFile::-1::1761280285::0::1::::<><><>0<>0<><>::
-::res://godot_rl_agents-main/docs/::1761280285
+::res://godot_rl_agents-main/docs/::1761280286
 action_repeat.png::CompressedTexture2D::7599867846538847161::1761280285::1761280286::1::::<><><>0<>0<>3d49412821933cd72c584ea99bb42aa1<>res://.godot/imported/action_repeat.png-ab08b6634743a96a0daf3bdc8fa70dd8.ctex::
 addon.png::CompressedTexture2D::5795399152362429097::1761280285::1761280286::1::::<><><>0<>0<>d966b8709c61908f39c43f125fa8d1fb<>res://.godot/imported/addon.png-0c6fcc503b2c4406446f6a8c2537dc2c.ctex::
 addon_enable.png::CompressedTexture2D::5776924445566798728::1761280285::1761280286::1::::<><><>0<>0<>fb24d00b8e500d57afe766bedc0b1780<>res://.godot/imported/addon_enable.png-3ae5d8236086cd7b374ddf37355683d5.ctex::
@@ -148,4 +148,10 @@ rllib_config.yaml::TextFile::-1::1761280285::0::1::::<><><>0<>0<><>::
 ::res://godot_rl_agents-main/tests/::1761280286
 ::res://godot_rl_agents-main/tests/fixtures/::1761280286
 test_rllib.yaml::TextFile::-1::1761280286::0::1::::<><><>0<>0<><>::
+::res://shootsound/::1761283917
+EmptyPlayer.wav::AudioStreamWAV::2577043773080967169::1761283917::1761283917::1::::<><><>0<>0<>9e2f09e4c10cf0044ee397938c4273db<>res://.godot/imported/EmptyPlayer.wav-59d0bbe248aabe7d85855e46f9c0e527.sample::
+ReloadPlayer.wav::AudioStreamWAV::2798602032248308693::1761283917::1761283917::1::::<><><>0<>0<>b790fbb396a4f6e3c3a23222fd919429<>res://.godot/imported/ReloadPlayer.wav-1588abfb35a3e58e846aaec0d1e4b37a.sample::
+ShootPlayer1.wav::AudioStreamWAV::4578956068803985308::1761283917::1761283917::1::::<><><>0<>0<>aaa9d6e82ebccc3e3d963eed60e99d88<>res://.godot/imported/ShootPlayer1.wav-ae3b2ff00400f06238b7ac70b9d33461.sample::
+ShootPlayer2.wav::AudioStreamWAV::7618573068223406463::1761283917::1761283917::1::::<><><>0<>0<>ae7521fc1e035d82f036e052dc452b62<>res://.godot/imported/ShootPlayer2.wav-07f3958f5737a590b3c9420bdb772acf.sample::
+ShootPlayer3.wav::AudioStreamWAV::7362959627056440661::1761283917::1761283917::1::::<><><>0<>0<>3d56bb531d87f3ff35cb0e75bf244bd8<>res://.godot/imported/ShootPlayer3.wav-23a973b2607b1c27600794b36ea177d5.sample::
 ::res://zip/::1761278777
