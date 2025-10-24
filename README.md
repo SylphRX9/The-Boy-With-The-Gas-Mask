@@ -12,10 +12,9 @@ Para obtener tu copia de trabajo del repositorio, sigue estos comandos en tu ter
 
    # Clonar el Repositorio: Descarga el proyecto completo de GitHub a tu máquina local.
 
-Bash git clone https://github.com/SylphRX9/The-Boy-With-The-Gas-Mask.git
+    git clone https://github.com/SylphRX9/The-Boy-With-The-Gas-Mask.git
 
 # Acceder a la Carpeta: Entra al directorio del proyecto.
-Bash
 
     cd The-Boy-With-The-Gas-Mask
 
