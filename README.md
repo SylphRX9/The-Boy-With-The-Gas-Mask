@@ -11,9 +11,8 @@ Asegúrate de tener instalado el sistema de control de versiones Git en tu máqu
 Para obtener tu copia de trabajo del repositorio, sigue estos comandos en tu terminal:
 
    # Clonar el Repositorio: Descarga el proyecto completo de GitHub a tu máquina local.
-    Bash
 
-git clone https://github.com/SylphRX9/The-Boy-With-The-Gas-Mask.git
+Bash git clone https://github.com/SylphRX9/The-Boy-With-The-Gas-Mask.git
 
 # Acceder a la Carpeta: Entra al directorio del proyecto.
 Bash
