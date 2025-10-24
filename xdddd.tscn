@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://b34wuq7gwoi5b"]
+[gd_scene load_steps=19 format=3 uid="uid://b34wuq7gwoi5b"]
 
 [ext_resource type="Texture2D" uid="uid://csxodtc2sfeuu" path="res://assets/textura_pasto (1).jpg" id="1_28dm3"]
 [ext_resource type="Texture2D" uid="uid://cgqmcra8ykqsq" path="res://assets/thecumgun.png" id="1_ivqoo"]
@@ -9,6 +9,7 @@
 [ext_resource type="AudioStream" uid="uid://dc5w4s6t66ppt" path="res://shootsound/ShootPlayer3.wav" id="6_ympoa"]
 [ext_resource type="AudioStream" uid="uid://bcylsf2krcxlp" path="res://shootsound/EmptyPlayer.wav" id="7_24gbr"]
 [ext_resource type="AudioStream" uid="uid://bf4wti8i7q5mf" path="res://shootsound/ReloadPlayer.wav" id="8_2m65v"]
+[ext_resource type="PackedScene" uid="uid://1m51y5qrc3t4" path="res://PowerUp.tscn" id="10_wp25t"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_7x1pq"]
 shader = ExtResource("1_kjanr")
@@ -58,11 +59,25 @@ var camera_bob_timer: float = 0.0
 @export var camera_bob_amount: float = 0.2
 @export var camera_bob_speed: float = 13.0
 
+<<<<<<< HEAD
 # --- Arma ---
 @export var max_ammo: int = 30
 var ammo: int = max_ammo
 var reloading: bool = false
 var shooting: bool = false
+=======
+# --- BALAS ---
+@export var max_bullets_per_mag: int = 32
+@export var max_mags: int = 3
+var current_bullets: int = max_bullets_per_mag
+@export var current_mags: int = max_mags
+var is_reloading: bool = false
+
+# --- DISPARO AUTOMÁTICO (SMG STYLE) ---
+@export var fire_rate: float = 0.08 # Dispara cada 0.08s (12.5 balas/segundo)
+var can_shoot: bool = true
+var is_firing: bool = false
+>>>>>>> 29e59ec (Agruegue que se pueda agregar cargadores y tambien con sonido de guardar)
 
 # --- Nodos de sonido ---
 @onready var shoot_sounds = [
@@ -229,7 +244,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12398529, 0, 0)
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_x6cpl")
 
-[node name="Player" type="CharacterBody3D" parent="."]
+[node name="Player" type="CharacterBody3D" parent="." groups=["player"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5126095, 0, 0)
 script = SubResource("GDScript_4xowi")
 
 [node name="Camera3D" type="Camera3D" parent="Player"]
@@ -273,3 +289,5 @@ mesh = SubResource("PlaneMesh_wbwvp")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D2/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_28dm3")
+
+[node name="Node3D" parent="." instance=ExtResource("10_wp25t")]

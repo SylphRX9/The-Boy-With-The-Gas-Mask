@@ -1,0 +1,59 @@
+[gd_scene load_steps=5 format=3 uid="uid://1m51y5qrc3t4"]
+
+[ext_resource type="PackedScene" uid="uid://b8u57e1a3lbdr" path="res://assets/old_ammo_crate.glb" id="1_1jq60"]
+[ext_resource type="AudioStream" uid="uid://cluu73epetf6b" path="res://SoundBackPack/205520__everheat__backpack1.wav" id="2_rk66f"]
+
+[sub_resource type="GDScript" id="GDScript_22l1f"]
+resource_name = "PowerUp"
+script/source = "extends Area3D
+
+var jugador_cerca = false
+var cuerpo_jugador: CharacterBody3D = null
+@onready var HitBox = $CollisionShape3D
+@onready var Sonido = $SonidoDeGuardar
+
+func _ready():
+	self.body_entered.connect(_on_body_entered) 
+	self.body_exited.connect(_on_body_exited)
+
+func _on_body_entered(body: Node3D):
+	if body.is_in_group(\"player\") and body is CharacterBody3D:
+		jugador_cerca = true
+		cuerpo_jugador = body
+		print(\"Cargador: Pulsa 'E' para recoger.\")
+
+func _on_body_exited(body: Node3D):
+	if body == cuerpo_jugador:
+		jugador_cerca = false
+		cuerpo_jugador = null
+		print(\"Cargador: Jugador fuera de rango.\")
+
+func _process(delta):
+	if jugador_cerca and Input.is_action_just_pressed(\"interact\"):
+
+		if cuerpo_jugador != null:
+			
+			cuerpo_jugador.current_mags += 1 
+			print(\"Cargador recogido. Total de cargadores: \", cuerpo_jugador.current_mags)
+			Sonido.play()
+			HitBox.queue_free()
+"
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1jq60"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="Area3D" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7894986, 0)
+script = SubResource("GDScript_22l1f")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+transform = Transform3D(3.5, 0, 0, 0, 3.5, 0, 0, 0, 3.5, 0, 0, 0)
+shape = SubResource("BoxShape3D_1jq60")
+
+[node name="Cargador" parent="Area3D" instance=ExtResource("1_1jq60")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.3912407, 0)
+
+[node name="SonidoDeGuardar" type="AudioStreamPlayer3D" parent="Area3D"]
+stream = ExtResource("2_rk66f")
+max_distance = 47.63
