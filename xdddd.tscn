@@ -1,11 +1,25 @@
-[gd_scene load_steps=8 format=3 uid="uid://b34wuq7gwoi5b"]
+[gd_scene load_steps=13 format=3 uid="uid://b34wuq7gwoi5b"]
 
 [ext_resource type="Texture2D" uid="uid://csxodtc2sfeuu" path="res://assets/textura_pasto (1).jpg" id="1_28dm3"]
 [ext_resource type="Texture2D" uid="uid://cgqmcra8ykqsq" path="res://assets/thecumgun.png" id="1_ivqoo"]
+[ext_resource type="Shader" uid="uid://6f47b5vnldw7" path="res://custom.tres" id="1_kjanr"]
+[ext_resource type="Texture2D" uid="uid://dj2wuro26srr3" path="res://assets/sky_normal.jpg" id="2_ympfa"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7x1pq"]
+shader = ExtResource("1_kjanr")
+shader_parameter/tex = ExtResource("2_ympfa")
+
+[sub_resource type="Sky" id="Sky_mm31t"]
+sky_material = SubResource("ShaderMaterial_7x1pq")
+
+[sub_resource type="Environment" id="Environment_x6cpl"]
+background_mode = 2
+sky = SubResource("Sky_mm31t")
 
 [sub_resource type="GDScript" id="GDScript_4xowi"]
 script/source = "extends CharacterBody3D
 
+# --- MOVIMIENTO ---
 @export var walk_speed: float = 5.0
 @export var run_speed: float = 9.0
 @export var crouch_speed: float = 2.5
@@ -13,33 +27,44 @@ script/source = "extends CharacterBody3D
 @export var gravity: float = 9.8
 @export var mouse_sensitivity: float = 0.0025
 
-# --- Recoil de cámara y arma ---
+# --- RECOIL ---
 @export var recoil_angle: float = 2.0
 @export var recoil_recover_speed: float = 6.0
 @export var weapon_recoil_distance: float = 0.2
 @export var weapon_recoil_recover_speed: float = 5.0
-
 var current_recoil_angle: float = 0.0
 var current_weapon_recoil: float = 0.0
 
-# Estamina
+# --- ESTAMINA ---
 @export var max_stamina: float = 100.0
-@export var stamina_recovery_rate: float = 15.0   # puntos/segundo
-@export var stamina_drain_rate: float = 25.0       # puntos/segundo
+@export var stamina_recovery_rate: float = 15.0
+@export var stamina_drain_rate: float = 25.0
 var stamina: float = max_stamina
 var is_running: bool = false
 var can_recover_stamina: bool = true
 
-# Crouch
+# --- AGACHAR ---
 @export var crouch_height: float = 0.8
 var standing_height: float
 var is_crouching: bool = false
 
-# Cámara y rotación
+# --- CÁMARA ---
 var rotation_x: float = 0.0
 var camera_bob_timer: float = 0.0
 @export var camera_bob_amount: float = 0.2
 @export var camera_bob_speed: float = 13.0
+
+# --- BALAS ---
+@export var max_bullets_per_mag: int = 32
+@export var max_mags: int = 3
+var current_bullets: int = max_bullets_per_mag
+var current_mags: int = max_mags
+var is_reloading: bool = false
+
+# --- DISPARO AUTOMÁTICO (SMG STYLE) ---
+@export var fire_rate: float = 0.08 # Dispara cada 0.08s (12.5 balas/segundo)
+var can_shoot: bool = true
+var is_firing: bool = false
 
 
 func _ready():
@@ -49,10 +74,7 @@ func _ready():
 
 func _unhandled_input(event):
 	if event is InputEventMouseMotion:
-		# Rotación horizontal del cuerpo
 		rotate_y(-event.relative.x * mouse_sensitivity)
-
-		# Rotación vertical de la cámara (limitada)
 		rotation_x -= event.relative.y * mouse_sensitivity
 		rotation_x = clamp(rotation_x, -1.5, 1.5)
 		$Camera3D.rotation.x = rotation_x
@@ -61,7 +83,7 @@ func _unhandled_input(event):
 func _physics_process(delta):
 	var input_dir = Vector3.ZERO
 
-	# Movimiento con WASD
+	# --- MOVIMIENTO ---
 	if Input.is_action_pressed(\"move_forward\"):
 		input_dir.z -= 1
 	if Input.is_action_pressed(\"move_backward\"):
@@ -72,25 +94,20 @@ func _physics_process(delta):
 		input_dir.x += 1
 
 	input_dir = input_dir.normalized()
-
-	# Dirección de movimiento basada en rotación
 	var direction = (transform.basis * input_dir)
 	direction.y = 0
 	direction = direction.normalized()
 
-	# --- SISTEMA DE CORRER CON ESTAMINA ---
+	# --- CORRER ---
 	is_running = Input.is_action_pressed(\"sprint\") and stamina > 0 and not is_crouching
-
 	if is_running:
 		stamina -= stamina_drain_rate * delta
-		if stamina < 0:
-			stamina = 0
+		stamina = max(stamina, 0)
 	else:
-		# Recuperar estamina cuando no corres
 		stamina += stamina_recovery_rate * delta
 		stamina = clamp(stamina, 0, max_stamina)
 
-	# --- SISTEMA DE AGACHARSE ---
+	# --- AGACHAR ---
 	if Input.is_action_pressed(\"crouch\"):
 		if not is_crouching:
 			is_crouching = true
@@ -100,31 +117,41 @@ func _physics_process(delta):
 			is_crouching = false
 			$Camera3D.position.y = standing_height
 
-	# Determinar velocidad según estado
+	# --- VELOCIDAD SEGÚN ESTADO ---
 	var current_speed = walk_speed
 	if is_running:
 		current_speed = run_speed
 	elif is_crouching:
 		current_speed = crouch_speed
 
-	# Movimiento horizontal
 	velocity.x = direction.x * current_speed
 	velocity.z = direction.z * current_speed
 
-	# Gravedad y salto
+	# --- GRAVEDAD Y SALTO ---
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 	else:
 		if Input.is_action_just_pressed(\"jump\") and not is_crouching:
 			velocity.y = jump_speed
 
-	# --- DISPARO Y RECOIL ---
-	if Input.is_action_just_pressed(\"fire\"):
-		apply_recoil()
+	# --- DISPARO AUTOMÁTICO ---
+	if Input.is_action_pressed(\"fire\") and not is_reloading:
+		is_firing = true
+	else:
+		is_firing = false
+
+	if is_firing and can_shoot and current_bullets > 0:
+		shoot()
+	elif is_firing and current_bullets <= 0 and not is_reloading:
+		print(\"Sin balas. Recarga con 'R'.\")
+
+	# --- RECARGAR ---
+	if Input.is_action_just_pressed(\"reload\") and not is_reloading:
+		reload()
 
 	move_and_slide()
 
-	# --- EFECTO DE CÁMARA (DOOM 1996 STYLE) ---
+	# --- EFECTO DE CÁMARA ---
 	_apply_camera_bob(delta, input_dir.length(), is_on_floor())
 
 	# --- RECOIL VISUAL ---
@@ -135,31 +162,50 @@ func _physics_process(delta):
 	var weapon_holder = $Camera3D/WeaponHolder
 	if weapon_holder:
 		current_weapon_recoil = lerp(current_weapon_recoil, 0.0, delta * weapon_recoil_recover_speed)
-		
-		# Movimiento base del arma
 		var base_position = Vector3(0.4, -0.4, -0.8 - current_weapon_recoil)
-
-		# Movimiento DOOM: seguir el bob de la cámara
 		var bob_offset_y = sin(camera_bob_timer) * 0.05
 		var bob_offset_x = sin(camera_bob_timer * 0.5) * 0.05
-
 		weapon_holder.position = base_position + Vector3(bob_offset_x, bob_offset_y, 0)
 
 
+# --- EFECTO DE CABECEO DE CÁMARA ---
 func _apply_camera_bob(delta, movement_amount: float, on_floor: bool):
 	if on_floor and movement_amount > 0:
 		camera_bob_timer += delta * camera_bob_speed
 		var bob_offset = sin(camera_bob_timer) * camera_bob_amount
 		$Camera3D.position.y = standing_height + bob_offset
 	else:
-		# Restablecer altura al estar quieto o en el aire
 		$Camera3D.position.y = lerp($Camera3D.position.y, standing_height, delta * 5.0)
 
 
-# --- FUNCIÓN DE RECOIL ---
+# --- DISPARO ---
+func shoot() -> void:
+	can_shoot = false
+	current_bullets -= 1
+	apply_recoil()
+	print(\"Balas:\", current_bullets, \"/\", max_bullets_per_mag, \" | Cargadores:\", current_mags)
+	await get_tree().create_timer(fire_rate).timeout
+	can_shoot = true
+
+
+# --- RECOIL ---
 func apply_recoil():
 	current_recoil_angle -= recoil_angle
 	current_weapon_recoil -= weapon_recoil_distance
+
+
+# --- RECARGA ---
+func reload():
+	if current_mags > 0 and current_bullets < max_bullets_per_mag:
+		is_reloading = true
+		print(\"Recargando...\")
+		await get_tree().create_timer(2.0).timeout  # tiempo de recarga
+		current_mags -= 1
+		current_bullets = max_bullets_per_mag
+		is_reloading = false
+		print(\"Recarga completa. Balas:\", current_bullets, \"/\", max_bullets_per_mag, \" | Cargadores restantes:\", current_mags)
+	elif current_mags <= 0:
+		print(\"No tienes más cargadores.\")
 "
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4xowi"]
@@ -176,6 +222,9 @@ data = PackedVector3Array(150, 0, 150, -150, 0, 150, 150, 0, -150, -150, 0, 150,
 
 [node name="Node3D" type="Node3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12398529, 0, 0)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_x6cpl")
 
 [node name="Player" type="CharacterBody3D" parent="."]
 script = SubResource("GDScript_4xowi")
@@ -195,7 +244,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5809941, 0)
 shape = SubResource("CapsuleShape3D_4xowi")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.024467036, 0.9997007, 0, -0.9997007, 0.024467036, 0, 11.387339, 0)
+transform = Transform3D(0.9308519, 0.008940174, 0.36528736, -0.3653967, 0.022775183, 0.93057317, 0, -0.9997006, 0.024467032, 63.350853, 152.5575, 0)
 
 [node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
 material_override = SubResource("StandardMaterial3D_ivqoo")

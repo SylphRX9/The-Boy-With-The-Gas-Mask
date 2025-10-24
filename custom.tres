@@ -1,0 +1,50 @@
+[gd_resource type="VisualShader" load_steps=5 format=3 uid="uid://6f47b5vnldw7"]
+
+[ext_resource type="Texture2D" uid="uid://drp254avy1x0m" path="res://assets/Skye_lightbolt.jpg" id="1_pwtt3"]
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_ohxyc"]
+input_name = "sky_coords"
+
+[sub_resource type="VisualShaderNodeTexture2DParameter" id="VisualShaderNodeTexture2DParameter_8pf04"]
+parameter_name = "tex"
+
+[sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_xswyp"]
+source = 5
+texture = ExtResource("1_pwtt3")
+texture_type = 1
+
+[resource]
+code = "shader_type sky;
+uniform sampler2D tex;
+
+
+
+void sky() {
+// Input:2
+	vec2 n_out2p0 = SKY_COORDS;
+
+
+	vec4 n_out4p0;
+// Texture2D:4
+	n_out4p0 = texture(tex, n_out2p0);
+
+
+// Output:0
+	COLOR = vec3(n_out4p0.xyz);
+
+
+}
+"
+mode = 3
+flags/use_half_res_pass = false
+flags/use_quarter_res_pass = false
+flags/disable_fog = false
+flags/use_debanding = false
+nodes/sky/0/position = Vector2(740, 220)
+nodes/sky/2/node = SubResource("VisualShaderNodeInput_ohxyc")
+nodes/sky/2/position = Vector2(20, 140)
+nodes/sky/3/node = SubResource("VisualShaderNodeTexture2DParameter_8pf04")
+nodes/sky/3/position = Vector2(-80, 320)
+nodes/sky/4/node = SubResource("VisualShaderNodeTexture_xswyp")
+nodes/sky/4/position = Vector2(420, 280)
+nodes/sky/connections = PackedInt32Array(2, 0, 4, 0, 3, 0, 4, 2, 4, 0, 0, 0)
